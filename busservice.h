@@ -73,6 +73,11 @@ extern const float avgStopDistance;
 extern const float lineLength;
 extern const int numStops;
 
+int numWaitingPassengers(int busStop);
+bool removePassenger(int busStop);
+void updateWaitingPassengers(void);
+bool spawnPassenger(int busStop);
+void spawnPassengers(void);
 void updateTimeVariables(void);
 void initializeModel(void);
 void tick(void);
