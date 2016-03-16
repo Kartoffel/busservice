@@ -47,6 +47,9 @@
  *  waitingPassengers
  *  arrivingPassengers
  *  position
+ *  weight
+ *  busyMorning
+ *  busyEvening
  *
  *  generatePassenger()
  *  removePassenger()

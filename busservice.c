@@ -1,10 +1,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 #include "busservice.h"
 
 #define maxWaitingPassengers 500
 #define maxBuses 100
+
+// TODO: Fix issue with buses not removed, possibly due to not continuing when bus is full
 
 int     numOvertakes        = 0;
 int     waitTime            = 0; // Seconds passengers have waited
@@ -15,9 +18,10 @@ const float avgStopDistance = 631; // m
 const int   numStops        = 36;
 const float lineLength      = numStops * avgStopDistance;
 const int   maxTOD          = 86400; // Stop model after timeOfDay exceeds this
+int         lastLine        = 1;
 
 struct cBusStation {
-    int periodEmitBus = 1;
+    int periodEmitBus = 30;
     float busDepartureCost = 0.0;
     float income = 0.0;
     float costs = 0.0;
@@ -44,10 +48,19 @@ struct cPassenger {
 };
 
 struct cBusStop {
-    float position;
+    float position = 0.0;
     struct cPassenger *waitingPassengers[maxWaitingPassengers];
+    float weight = 1.0;
+    bool busyMorning = false;
+    bool busyEvening = false;
 };
 struct cBusStop busStops[numStops];
+
+// Used as a reference
+struct cBusStopRef {
+    int index;
+    float position;
+};
 
 struct cPassengerGenerator {
     int averagePeriod;
@@ -76,7 +89,7 @@ bool emitBus(int busLine) {
     }
 
     for (int i = 0; i < maxBuses; i++){
-        if (buses[i] != NULL) {
+        if (buses[i] == NULL) {
             buses[i] = (struct cBus*) malloc(sizeof(cBus));
             buses[i]->line = busLine;
             buses[i]->passengersOnBoard = 0;
@@ -85,7 +98,7 @@ bool emitBus(int busLine) {
             if (busLine == 0) {
                 buses[i]->seats = 33;
                 buses[i]->standings = 105;
-            }else if (busLine == 1) {
+            } else if (busLine == 1) {
                 buses[i]->seats = 25;
                 buses[i]->standings = 74;
             }
@@ -95,8 +108,104 @@ bool emitBus(int busLine) {
     return false;
 }
 
-void updateBuses(void) {
+bool removeBus(int index) {
+    free(buses[index]);
+    buses[index] = NULL;
+    printf("%d: Removed bus %d\n", clock.timeOfDay, index);
+    return true;
+}
 
+// returns index of stop if at stop, otherwise -1
+int atStop(float curPos) {
+    int stop = -1;
+    for (int i = 0; i < numStops; i++) {
+        if (busStops[i].position == curPos){
+            stop = i;
+        }
+    }
+    return stop;
+}
+
+// find index/position of next stop
+struct cBusStopRef nextStop(float curPos) {
+    struct cBusStopRef stop;
+
+    if (curPos >= ((numStops - 1) * avgStopDistance)) {
+        // Next stop is station
+        stop.index = 0;
+        stop.position = numStops * avgStopDistance;
+        return stop;
+    }
+
+    for (int i = 0; i < numStops; i++) {
+        if (busStops[i].position > curPos){
+            stop.index = i;
+            stop.position = busStops[i].position;
+        }
+    }
+
+    return stop;
+}
+
+// Calculate passengers to exit bus
+int exitingPassengers(int curStop){
+    int passengers = 100 * busStops[curStop].weight;
+
+    return passengers;
+}
+
+void updateBuses(void) {
+    for (int i = 0; i < maxBuses; i++) {
+        if ( buses[i] == NULL) {
+            continue;
+        }
+
+        // Calculate next bus position
+        float nextPos = buses[i]->position +
+            driver.maxVelocity * driver.trafficDelay;
+
+        if (nextPos >= nextStop(buses[i]->position).position) {
+            // Arrival at a bus stop, unload passengers
+            cBusStopRef newStop = nextStop(buses[i]->position);
+            buses[i]->position = newStop.position;
+
+            for (int j = 0; j < exitingPassengers(newStop.index); j++){
+                if (buses[i]->passengersOnBoard > 0) {
+                    buses[i]->passengersOnBoard--;
+                    busStation.income += busStation.avgTicketPrice;
+                }
+            }
+        }
+
+        if (buses[i]->position >= numStops * avgStopDistance) {
+            // Bus arrived back at station
+            while (buses[i]->passengersOnBoard > 0) {
+                buses[i]->passengersOnBoard--;
+                busStation.income += busStation.avgTicketPrice;
+            }
+            removeBus(i);
+            continue;
+        }
+
+        if (atStop(buses[i]->position) != -1) {
+            int curStop = atStop(buses[i]->position);
+            printf("%d: Bus %d is at stop %d\n", clock.timeOfDay,
+                    i, curStop);
+
+            if (numWaitingPassengers(curStop) > 0
+                    && buses[i]->passengersOnBoard
+                    < (buses[i]->seats + buses[i]->standings)) {
+                // Bus can take more passengers
+                printf("%d: Removing passenger from stop\n", clock.timeOfDay);
+                removePassenger(curStop);
+                buses[i]->passengersOnBoard++;
+            }
+        }
+
+        buses[i]->position = nextPos;
+        // TODO: When leaving from stop, calculate average availability
+        // (if at stop && (bus is full || no waiting passengers))
+    }
 }
 
 int numWaitingPassengers(int busStop) {
@@ -112,7 +221,8 @@ int numWaitingPassengers(int busStop) {
 // Remove a passenger from a bus stop, update the average waiting time
 bool removePassenger(int busStop) {
     if (numWaitingPassengers(busStop) == 0){
-        printf("Unable to remove passenger from stop %d!\n", busStop);
+        printf("%d: Unable to remove passenger from stop %d!\n",
+                clock.timeOfDay, busStop);
         return false;
     }
 
@@ -134,6 +244,8 @@ bool removePassenger(int busStop) {
                 ->waitingTime;
             totalPassengers += 1;
             free(busStops[busStop].waitingPassengers[i]);
+            busStops[busStop].waitingPassengers[i] = NULL;
+            printf("%d: Removed passenger from stop %d\n", clock.timeOfDay, busStop);
             return true;
         }
     }
@@ -154,7 +266,8 @@ void updateWaitingPassengers(void) {
 // Spawns a passenger at a stop
 bool spawnPassenger(int busStop) {
     if (numWaitingPassengers(busStop) >= maxWaitingPassengers) {
-        printf("Failed to spawn passenger at stop %d!\n", busStop);
+        printf("%d: Failed to spawn passenger at stop %d!\n", clock.timeOfDay,
+                busStop);
         return false;
     }
 
@@ -178,9 +291,17 @@ void spawnPassengers(void) {
 
 // Update time dependent variables
 void updateTimeVariables(void) {
-    // TODO: actually make these time variable
-    driver.trafficDelay = 1.0;
-    passengerGenerator.averagePeriod = 60;
+    // TODO: make the passenger generator time variable
+
+    float timeOfDay24h = 24 * clock.timeOfDay / maxTOD;
+
+    if (timeOfDay24h <= 12) {
+        driver.trafficDelay = -4 * exp(-pow(timeOfDay24h - 9, 2) / 15) + 10 / 10;
+    }else{
+        driver.trafficDelay = -6 * exp(-pow(timeOfDay24h - 17, 2) / 15) + 10 / 10;
+    }
+
+    passengerGenerator.averagePeriod = 80;
 }
 
 void initializeModel(void) {
@@ -195,18 +316,37 @@ void tick(void) {
     updateTimeVariables();
     updateWaitingPassengers();
 
+    updateBuses();
+
     // If it's time, spawn a passenger at every stop
     if (clock.timeOfDay % passengerGenerator.averagePeriod == 0){
         spawnPassengers();
     }
 
     // If it's time, emit a new bus
-
+    if (clock.timeOfDay % busStation.periodEmitBus == 0) {
+        int newLine;
+        if (lastLine == 0){
+            newLine = 1;
+        }else{
+            newLine = 0;
+        }
+        if (emitBus(newLine)) {
+            printf("%d: Emitted new bus on line %d", clock.timeOfDay, newLine);
+            busStation.costs += busStation.busDepartureCost;
+        }else{
+            printf("%d: Failed to emit new bus on line %d\n",
+                    clock.timeOfDay, newLine);
+        }
+        printf("Number of buses on line: %d\n", numBuses());
+        lastLine = newLine;
+    }
 
     clock.timeOfDay += 1;
 }
 
 void printResults(void) {
+    printf("Total transported passengers: %d\n", totalPassengers);
     float avgWaitTime = waitTime / totalPassengers;
     printf("Average passenger waiting time (s): %.1f\n", avgWaitTime);
 }
