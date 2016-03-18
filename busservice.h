@@ -9,73 +9,42 @@
  *  Overtake occurences
  *  Seat availability
  *
- * Class overview:
- *
- * CLASS busStation
- *  periodEmitBus
- *  income
- *  costs
- *  profit
- *  avgTicketPrice
- *
- *  emitBus(frequencyEmitBus)
- *  collectIncome(income)
- *
- * CLASS bus
- *  line
- *  seats
- *  standings
- *  passengersOnBoard
- *  position
- *
- *  move(position)
- *  collectIncome(passengers,position)
- *  useStop()
- *
- * CLASS driver
- *  timeOfDay
- *  trafficDelay
- *  maxVelocity
- *  driveBus()
- *
- * CLASS clock
- *  timeOfDay
- *
- *  increment()
- *
- * CLASS busStop
- *  waitingPassengers
- *  arrivingPassengers
- *  position
- *  weight
- *  busyMorning
- *  busyEvening
- *
- *  generatePassenger()
- *  removePassenger()
- *
- * CLASS passengerGenerator
- *  averageFrequency
- *  timeOfDay
- *
- *  generatePassenger()
- *
- * CLASS passenger
- *  waitingTime
  */
 #ifndef BUSSERVICE_H_
 #define BUSSERVICE_H_
 
-extern int numOvertakes;
-extern int waitTime;
-extern int totalPassengers;
-extern int seatAvailability;
+//#define DEBUG
 
-extern const int maxTOD;
-extern const float avgStopDistance;
-extern const float lineLength;
-extern const int numStops;
+#define maxWaitingPassengers 15
+#define maxBuses 100
+#define avgStopDistance 631
+#define numStops 36
+#define lineLength numStops * avgStopDistance
+#define maxTOD 86400
 
+extern unsigned int numOvertakes;
+extern unsigned int waitTime;
+extern unsigned int totalPassengers;
+extern unsigned long totalAvailability;
+extern unsigned int totalAvailNum;
+extern unsigned int totalBuses;
+
+extern int lastLine;
+
+extern struct cBus *buses[maxBuses];
+extern struct cDriver driver;
+extern struct cBusStop busStops[numStops];
+extern struct cPassengerGenerator passengerGenerator;
+extern struct cClock clock;
+
+int numBuses(void);
+bool emitBus(int busLine);
+bool removeBus(int index);
+int atStop(float curPos);
+bool otherBusAtStop(float curPos, int curBus);
+struct cBusStopRef nextStop(float curPos);
+int exitingPassengers(int curStop);
+void updateBuses(void);
 int numWaitingPassengers(int busStop);
 bool removePassenger(int busStop);
 void updateWaitingPassengers(void);
@@ -85,5 +54,5 @@ void updateTimeVariables(void);
 void initializeModel(void);
 void tick(void);
 void printResults(void);
-
+int main(void);
 #endif
