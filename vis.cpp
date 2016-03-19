@@ -78,7 +78,7 @@ void drawScreen(void) {
     char info[100];
     sprintf(info, "Time: %02d:%02d - Bus speed: %.1f m/s", clk.timeOfDay / 3600,
         clk.timeOfDay % 3600 / 60, driver.trafficDelay * driver.maxVelocity);
-    stringRGBA(gRenderer, 3, screenHeight - borderSize / 2, info, 0, 0, 0, 255);
+    stringRGBA(gRenderer, 8, screenHeight - borderSize / 2, info, 0, 0, 0, 255);
 
     // Draw stops
     for (int i = 0; i <= numStops; i++) {
@@ -126,6 +126,16 @@ void drawScreen(void) {
             stringRGBA(gRenderer, 8, yPos, "401", 0, 0, 0, 255);
         } else {
             stringRGBA(gRenderer, 8, yPos, "402", 0, 0, 0, 255);
+        }
+
+        if (buses[i] -> passengersOnBoard > 99) {
+            boxRGBA(gRenderer, (int) round(xPos) - 1, (int) round(yPos) - 1,
+                (int) round(xPos) + 26, (int) round(yPos) + 9,
+                0xFF, 0xCC, 0, 255);
+        } else {
+            boxRGBA(gRenderer, (int) round(xPos) - 1, (int) round(yPos) - 1,
+                (int) round(xPos) + 17, (int) round(yPos) + 9,
+                0xFF, 0xCC, 0, 255);
         }
 
         if (atStop(buses[i]->position) == -1) {

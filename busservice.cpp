@@ -8,11 +8,13 @@ unsigned int    numOvertakes        = 0;
 unsigned int    waitTime            = 0; // Seconds passengers have waited
 unsigned int    totalOutPassengers  = 0; // Passengers who exited the bus
 unsigned int    totalInPassengers   = 0; // Passengers who entered the bus
+unsigned int    totalForcedOutPass  = 0; // Passengers forced out at 24:00
+unsigned int    forcedOutPass       = 0; // Passengers forced out at 24:00
 unsigned long   totalAvailability   = 0; // % of seated passengers / total
 unsigned int    totalAvailNum       = 0; // Used for averaging
 unsigned int    totalBuses          = 0;
 
-int         lastLine        = 1;
+int             lastLine            = 1;
 
 struct cBusStation {
     int periodEmitBus = 300;
@@ -51,11 +53,48 @@ struct cBusStop {
 struct cBusStop busStops[numStops];
 
 struct cBusStopProperties {
-    int index;
     float weight;
     bool busyMorning;
     bool busyEvening;
-} busStopProps;
+};
+struct cBusStopProperties busStopProps[numStops] = {
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+    {10, false, false},
+};
 
 // Used as a reference
 struct cBusStopRef {
@@ -71,7 +110,7 @@ struct cClock {
     int timeOfDay = 1; // 1-86400
 } clk;
 
-//#include "vis.cpp"
+#include "vis.cpp"
 
 // Number of buses being driven
 int numBuses(void) {
@@ -234,6 +273,7 @@ void updateBuses(void) {
                 buses[i]->passengersOnBoard--;
                 busStation.income += busStation.avgTicketPrice;
                 totalOutPassengers += 1;
+                totalForcedOutPass += 1;
             }
             removeBus(i);
             continue;
@@ -378,10 +418,10 @@ void updateTimeVariables(void) {
     float timeOfDay24h = 24.0 * clk.timeOfDay / (maxTOD);
 
     if (timeOfDay24h <= 12) {
-        driver.trafficDelay = -4 * exp(-pow(timeOfDay24h - 9.0, 2) / 15) + 10
+        driver.trafficDelay = (-4 * exp(-pow(timeOfDay24h - 9.0, 2) / 15) + 10)
             / 10;
     }else{
-        driver.trafficDelay = -6 * exp(-pow(timeOfDay24h - 17.0, 2) / 15) + 10
+        driver.trafficDelay = (-6 * exp(-pow(timeOfDay24h - 17.0, 2) / 15) + 10)
             / 10;
     }
 }
@@ -391,6 +431,9 @@ void initializeModel(void) {
 
     for (int i = 0; i < numStops; i++) {
         busStops[i].position = i * avgStopDistance;
+        busStops[i].weight = busStopProps[i].weight;
+        busStops[i].busyMorning = busStopProps[i].busyMorning;
+        busStops[i].busyEvening = busStopProps[i].busyEvening;
     }
 }
 
@@ -469,6 +512,7 @@ void cleanupModel(void) {
         for (int j = 0; j < buses[i]->passengersOnBoard; j++) {
             busStation.income += busStation.avgTicketPrice;
             totalOutPassengers += 1;
+            forcedOutPass += 1;
         }
         removeBus(i);
     }
@@ -477,7 +521,9 @@ void cleanupModel(void) {
 void printResults(void) {
     printf("Total departed buses: %d\n", totalBuses);
     printf("Total passengers: %d\n", totalInPassengers);
-    printf("Total paid passengers: %d\n", totalOutPassengers);
+    printf("Total paid passengers: %d\n",totalOutPassengers);
+    printf("%d passengers forced out during the day\n", totalForcedOutPass);
+    printf("%d passengers forced out at midnight\n", forcedOutPass);
 
     float avgWaitTime = waitTime / totalOutPassengers;
     printf("Average passenger waiting time (s): %.1f\n", avgWaitTime);
@@ -510,9 +556,9 @@ int main(void) {
             break;
         }
 
-        if (clk.timeOfDay > 314 && clk.timeOfDay % 1 == 0){
+        if (clk.timeOfDay > busStation.periodEmitBus && clk.timeOfDay % 1 == 0){
             drawScreen();
-            SDL_Delay(10);
+            SDL_Delay(7);
         }
 #endif
     }

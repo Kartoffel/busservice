@@ -34,6 +34,7 @@ extern int lastLine;
 extern struct cBus *buses[maxBuses];
 extern struct cDriver driver;
 extern struct cBusStop busStops[numStops];
+extern struct cBusStopProperties busStopProps[numStops];
 extern struct cPassengerGenerator passengerGenerator;
 extern struct cClock clk;
 
