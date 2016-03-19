@@ -6,7 +6,8 @@
 
 unsigned int    numOvertakes        = 0;
 unsigned int    waitTime            = 0; // Seconds passengers have waited
-unsigned int    totalPassengers     = 0; // Passengers who took the bus
+unsigned int    totalOutPassengers  = 0; // Passengers who exited the bus
+unsigned int    totalInPassengers   = 0; // Passengers who entered the bus
 unsigned long   totalAvailability   = 0; // % of seated passengers / total
 unsigned int    totalAvailNum       = 0; // Used for averaging
 unsigned int    totalBuses          = 0;
@@ -49,6 +50,13 @@ struct cBusStop {
 };
 struct cBusStop busStops[numStops];
 
+struct cBusStopProperties {
+    int index;
+    float weight;
+    bool busyMorning;
+    bool busyEvening;
+} busStopProps;
+
 // Used as a reference
 struct cBusStopRef {
     int index;
@@ -61,7 +69,9 @@ struct cPassengerGenerator {
 
 struct cClock {
     int timeOfDay = 1; // 1-86400
-} clock;
+} clk;
+
+//#include "vis.cpp"
 
 // Number of buses being driven
 int numBuses(void) {
@@ -104,7 +114,7 @@ bool removeBus(int index) {
     free(buses[index]);
     buses[index] = NULL;
 #ifdef DEBUG
-    printf("%d: Removed bus %d\n", clock.timeOfDay, index);
+    printf("%d: Removed bus %d\n", clk.timeOfDay, index);
 #endif
     return true;
 }
@@ -155,10 +165,17 @@ struct cBusStopRef nextStop(float curPos) {
 
 // Calculate passengers to exit bus
 int exitingPassengers(int curStop){
-    float timeOfDay24h = 24 * clock.timeOfDay / maxTOD;
-    float c = busStops[curStop].busyMorning ? 0.1 : 1.0;
-    float a = busStops[curStop].busyEvening ? 0.1 : 1.0;
-    float passengers;
+    float timeOfDay24h = 24.0 * clk.timeOfDay / (maxTOD);
+    float c,a,passengers;
+    if (busStops[curStop].busyMorning)
+        c = 0.1;
+    else
+        c = 1.0;
+
+    if (busStops[curStop].busyEvening)
+        a = 0.1;
+    else
+        a = 1.0;
 
     if (timeOfDay24h <= 12) {
         passengers = (busStops[curStop].weight * c * 6 * exp(
@@ -181,6 +198,7 @@ void updateBuses(void) {
         float nextPos = buses[i]->position +
             driver.maxVelocity * driver.trafficDelay;
 
+        // Bus nearing a stop
         if (nextPos >= nextStop(buses[i]->position).position) {
             cBusStopRef newStop = nextStop(buses[i]->position);
 
@@ -188,7 +206,7 @@ void updateBuses(void) {
                 // Another bus is already at the stop. Overtake it
 #ifdef DEBUG
                 printf("%d: Bus %d overtaking bus at stop %d\n",
-                    clock.timeOfDay, i, newStop.index);
+                    clk.timeOfDay, i, newStop.index);
 #endif
                 buses[i]->position = nextPos + 0.1;
                 numOvertakes += 1;
@@ -197,14 +215,14 @@ void updateBuses(void) {
                 buses[i]->position = newStop.position;
 #ifdef DEBUG
                 printf("%d: Bus %d arriving at stop %d. Unloading passengers\n",
-                            clock.timeOfDay, i, newStop.index);
+                            clk.timeOfDay, i, newStop.index);
 #endif
 
                 for (int j = 0; j < exitingPassengers(newStop.index); j++){
                     if (buses[i]->passengersOnBoard > 0) {
                         buses[i]->passengersOnBoard--;
                         busStation.income += busStation.avgTicketPrice;
-                        totalPassengers += 1;
+                        totalOutPassengers += 1;
                     }
                 }
             }
@@ -215,7 +233,7 @@ void updateBuses(void) {
             while (buses[i]->passengersOnBoard > 0) {
                 buses[i]->passengersOnBoard--;
                 busStation.income += busStation.avgTicketPrice;
-                totalPassengers += 1;
+                totalOutPassengers += 1;
             }
             removeBus(i);
             continue;
@@ -225,7 +243,7 @@ void updateBuses(void) {
         if (atStop(buses[i]->position) != -1) {
             int curStop = atStop(buses[i]->position);
 #ifdef DEBUG
-            printf("%d: Bus %d is at stop %d\n", clock.timeOfDay,
+            printf("%d: Bus %d is at stop %d\n", clk.timeOfDay,
                     i, curStop);
 #endif
 
@@ -235,6 +253,7 @@ void updateBuses(void) {
                 // Bus can take more passengers
                 removePassenger(curStop);
                 buses[i]->passengersOnBoard++;
+                totalInPassengers++;
                 continue;
             }
         }
@@ -243,10 +262,9 @@ void updateBuses(void) {
         // with no waiting passengers, continue.
         if (atStop(buses[i]->position) == -1
                 || (atStop(buses[i]->position) != -1
-                    && (numWaitingPassengers(atStop(buses[i]->position))
-                        == 0
+                    && (numWaitingPassengers(atStop(buses[i]->position)) == 0
                         || buses[i]->passengersOnBoard
-                            > (buses[i]->seats + buses[i]->standings)))) {
+                            >= (buses[i]->seats + buses[i]->standings)))) {
             buses[i]->position = nextPos;
             // Calculate seat availability
             int sittingPassengers, seatAvailability = 0;
@@ -283,7 +301,7 @@ bool removePassenger(int busStop) {
     if (numWaitingPassengers(busStop) == 0){
 #ifdef DEBUG
         printf("%d: Unable to remove passenger from stop %d!\n",
-                clock.timeOfDay, busStop);
+                clk.timeOfDay, busStop);
 #endif
         return false;
     }
@@ -308,7 +326,7 @@ bool removePassenger(int busStop) {
             busStops[busStop].waitingPassengers[i] = NULL;
 #ifdef DEBUG
             printf("%d: Removed passenger from stop %d\n",
-                    clock.timeOfDay, busStop);
+                    clk.timeOfDay, busStop);
 #endif
             return true;
         }
@@ -331,7 +349,7 @@ void updateWaitingPassengers(void) {
 bool spawnPassenger(int busStop) {
     if (numWaitingPassengers(busStop) >= maxWaitingPassengers) {
 #ifdef DEBUG
-        printf("%d: Failed to spawn passenger at stop %d!\n", clock.timeOfDay,
+        printf("%d: Failed to spawn passenger at stop %d!\n", clk.timeOfDay,
                 busStop);
 #endif
         return false;
@@ -357,12 +375,14 @@ void spawnPassengers(void) {
 
 // Update time dependent variables
 void updateTimeVariables(void) {
-    float timeOfDay24h = 24 * clock.timeOfDay / maxTOD;
+    float timeOfDay24h = 24.0 * clk.timeOfDay / (maxTOD);
 
     if (timeOfDay24h <= 12) {
-        driver.trafficDelay = -4 * exp(-pow(timeOfDay24h - 9, 2) / 15) + 10 / 10;
+        driver.trafficDelay = -4 * exp(-pow(timeOfDay24h - 9.0, 2) / 15) + 10
+            / 10;
     }else{
-        driver.trafficDelay = -6 * exp(-pow(timeOfDay24h - 17, 2) / 15) + 10 / 10;
+        driver.trafficDelay = -6 * exp(-pow(timeOfDay24h - 17.0, 2) / 15) + 10
+            / 10;
     }
 }
 
@@ -381,12 +401,19 @@ void tick(void) {
     updateBuses();
 
     // If it's time, spawn a passenger at a stop
-    float timeOfDay24h = 24 * clock.timeOfDay / maxTOD;
+    float timeOfDay24h = 24 * clk.timeOfDay / maxTOD;
     for (int i = 0; i < numStops; i++) {
-        float passengerPeriod;
+        float passengerPeriod, c, a;
         float f0 = 0.5;
-        float c = busStops[i].busyMorning ? 1.0 : 0.1;
-        float a = busStops[i].busyEvening ? 1.0 : 0.1;
+        if (busStops[i].busyMorning)
+            c = 1.0;
+        else
+            c = 0.1;
+
+        if (busStops[i].busyEvening)
+            a = 1.0;
+        else
+            a = 0.1;
 
         if (timeOfDay24h <= 12) {
             passengerPeriod = 60 / (busStops[i].weight * f0 * c * 6 * exp(
@@ -396,16 +423,16 @@ void tick(void) {
                 -pow(timeOfDay24h - 17, 2) / 15) / 10 + 3);
         }
 
-        if (clock.timeOfDay % (int) round(passengerPeriod) == 0){
+        if (clk.timeOfDay % (int) round(passengerPeriod) == 0){
 #ifdef DEBUG
-            printf("%d: Spawning passenger at stop %d\n", clock.timeOfDay, i);
+            printf("%d: Spawning passenger at stop %d\n", clk.timeOfDay, i);
 #endif
             spawnPassenger(i);
         }
     }
 
     // If it's time, emit a new bus
-    if (clock.timeOfDay % busStation.periodEmitBus == 0) {
+    if (clk.timeOfDay % busStation.periodEmitBus == 0) {
         int newLine;
         if (lastLine == 0){
             newLine = 1;
@@ -414,14 +441,14 @@ void tick(void) {
         }
         if (emitBus(newLine)) {
 #ifdef DEBUG
-            printf("%d: Emitted new bus on line %d\n", clock.timeOfDay, newLine);
+            printf("%d: Emitted new bus on line %d\n", clk.timeOfDay, newLine);
 #endif
             busStation.costs += busStation.busDepartureCost;
             totalBuses += 1;
         }else{
 #ifdef DEBUG
             printf("%d: Failed to emit new bus on line %d\n",
-                    clock.timeOfDay, newLine);
+                    clk.timeOfDay, newLine);
 #endif
         }
 #ifdef DEBUG
@@ -430,14 +457,29 @@ void tick(void) {
         lastLine = newLine;
     }
 
-    clock.timeOfDay += 1;
+    clk.timeOfDay += 1;
+}
+
+// Remove all buses, collect income
+void cleanupModel(void) {
+    for (int i = 0; i < maxBuses; i++) {
+        if (buses[i] == NULL) {
+            continue;
+        }
+        for (int j = 0; j < buses[i]->passengersOnBoard; j++) {
+            busStation.income += busStation.avgTicketPrice;
+            totalOutPassengers += 1;
+        }
+        removeBus(i);
+    }
 }
 
 void printResults(void) {
     printf("Total departed buses: %d\n", totalBuses);
-    printf("Total transported passengers: %d\n", totalPassengers);
+    printf("Total passengers: %d\n", totalInPassengers);
+    printf("Total paid passengers: %d\n", totalOutPassengers);
 
-    float avgWaitTime = waitTime / totalPassengers;
+    float avgWaitTime = waitTime / totalOutPassengers;
     printf("Average passenger waiting time (s): %.1f\n", avgWaitTime);
 
     float avgSeatAvailability = totalAvailability / (float) totalAvailNum;
@@ -455,12 +497,35 @@ void printResults(void) {
 }
 
 int main(void) {
+#ifdef VIS_CPP_
+    initializeScreen();
+#endif
     initializeModel();
 
-    while (clock.timeOfDay <= maxTOD) {
+    while (clk.timeOfDay <= maxTOD) {
         tick();
+#ifdef VIS_CPP_
+        handleScreenEvents();
+        if (quit) {
+            break;
+        }
+
+        if (clk.timeOfDay > 314 && clk.timeOfDay % 1 == 0){
+            drawScreen();
+            SDL_Delay(10);
+        }
+#endif
     }
 
+    cleanupModel();
     printResults();
+
+#ifdef VIS_CPP_
+    while (!quit){
+        handleScreenEvents();
+    }
+    closeScreen();
+#endif
+
     return 0;
 }

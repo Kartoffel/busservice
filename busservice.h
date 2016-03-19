@@ -16,7 +16,7 @@
 //#define DEBUG
 
 #define maxWaitingPassengers 15
-#define maxBuses 100
+#define maxBuses 50
 #define avgStopDistance 631
 #define numStops 36
 #define lineLength numStops * avgStopDistance
@@ -35,7 +35,7 @@ extern struct cBus *buses[maxBuses];
 extern struct cDriver driver;
 extern struct cBusStop busStops[numStops];
 extern struct cPassengerGenerator passengerGenerator;
-extern struct cClock clock;
+extern struct cClock clk;
 
 int numBuses(void);
 bool emitBus(int busLine);
@@ -53,6 +53,7 @@ void spawnPassengers(void);
 void updateTimeVariables(void);
 void initializeModel(void);
 void tick(void);
+void cleanupModel(void);
 void printResults(void);
 int main(void);
 #endif
