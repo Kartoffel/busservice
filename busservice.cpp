@@ -17,7 +17,8 @@ unsigned int    totalBuses          = 0;
 int             lastLine            = 1;
 
 struct cBusStation {
-    int periodEmitBus = 300;
+    int periodEmitBus = 0;
+    int periodsEmitBus[3] = {300, 600, 1800}; // Rush, day and night
     float busDepartureCost = 0.0;
     float income = 0.0;
     float costs = 0.0;
@@ -415,6 +416,18 @@ void spawnPassengers(void) {
 void updateTimeVariables(void) {
     float timeOfDay24h = 24.0 * clk.timeOfDay / (maxTOD);
 
+    if ((timeOfDay24h >= 7 && timeOfDay24h <= 11)
+        || (timeOfDay24h >= 14 && timeOfDay24h <= 19)) {
+        // Rush hour
+        busStation.periodEmitBus = busStation.periodsEmitBus[0];
+    } else if (timeOfDay24h >= 22 || timeOfDay24h <= 4) {
+        // Night
+        busStation.periodEmitBus = busStation.periodsEmitBus[3];
+    } else {
+        // Day
+        busStation.periodEmitBus = busStation.periodsEmitBus[1];
+    }
+
     if (timeOfDay24h <= 12) {
         driver.trafficDelay = (-4 * exp(-pow(timeOfDay24h - 9.0, 2) / 15) + 10)
             / 10;
@@ -445,7 +458,7 @@ void tick(void) {
     float timeOfDay24h = 24 * clk.timeOfDay / maxTOD;
     for (int i = 0; i < numStops; i++) {
         float passengerPeriod, c, a;
-        float f0 = 0.5;
+        float f0 = 0.25;
         if (busStops[i].busyMorning)
             c = 1.0;
         else
@@ -457,11 +470,11 @@ void tick(void) {
             a = 0.1;
 
         if (timeOfDay24h <= 12) {
-            passengerPeriod = 60 / (busStops[i].weight * f0 * c * 6 * exp(
-                -pow(timeOfDay24h - 9, 2) / 15) / 10 + 3);
+            passengerPeriod = 60.0 / (busStops[i].weight * f0 * c * 6 * exp(
+                -pow(timeOfDay24h - 9, 2) / 15.0) / 10 + 3);
         } else {
-            passengerPeriod = 60 / (busStops[i].weight * f0 * a * 6 * exp(
-                -pow(timeOfDay24h - 17, 2) / 15) / 10 + 3);
+            passengerPeriod = 60.0 / (busStops[i].weight * f0 * a * 6 * exp(
+                -pow(timeOfDay24h - 17, 2) / 15.0) / 10 + 3);
         }
 
         if (clk.timeOfDay % (int) round(passengerPeriod) == 0){
@@ -556,7 +569,7 @@ int main(void) {
 
         if (clk.timeOfDay > busStation.periodEmitBus && clk.timeOfDay % 1 == 0){
             drawScreen();
-            SDL_Delay(7);
+            SDL_Delay(6);
         }
 #endif
     }
