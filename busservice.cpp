@@ -109,7 +109,7 @@ struct cClock {
     int timeOfDay = 1; // 1-86400
 } clk;
 
-//#include "vis.cpp"
+#include "vis.cpp"
 
 // Number of buses being driven
 int numBuses(void) {
@@ -422,7 +422,7 @@ void updateTimeVariables(void) {
         busStation.periodEmitBus = busStation.periodsEmitBus[0];
     } else if (timeOfDay24h >= 22 || timeOfDay24h <= 4) {
         // Night
-        busStation.periodEmitBus = busStation.periodsEmitBus[3];
+        busStation.periodEmitBus = busStation.periodsEmitBus[2];
     } else {
         // Day
         busStation.periodEmitBus = busStation.periodsEmitBus[1];
@@ -567,7 +567,7 @@ int main(void) {
             break;
         }
 
-        if (clk.timeOfDay > busStation.periodEmitBus && clk.timeOfDay % 1 == 0){
+        if (clk.timeOfDay > busStation.periodEmitBus){
             drawScreen();
             SDL_Delay(6);
         }

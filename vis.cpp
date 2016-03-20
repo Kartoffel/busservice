@@ -76,8 +76,11 @@ void drawScreen(void) {
     stringRGBA(gRenderer, 3, borderSize / 2, "Stop", 0, 0, 0, 255);
     stringRGBA(gRenderer, 3, borderSize / 2 + 10, "Pass", 0, 0, 0, 255);
     char info[100];
-    sprintf(info, "Time: %02d:%02d - Bus speed: %.1f m/s", clk.timeOfDay / 3600,
-        clk.timeOfDay % 3600 / 60, driver.trafficDelay * driver.maxVelocity);
+    sprintf(info,
+        "Time: %02d:%02d - Bus speed: %.1f m/s - Bus departing every %dm",
+        clk.timeOfDay / 3600, clk.timeOfDay % 3600 / 60,
+        driver.trafficDelay * driver.maxVelocity,
+        busStation.periodEmitBus / 60);
     stringRGBA(gRenderer, 8, screenHeight - borderSize / 2, info, 0, 0, 0, 255);
 
     // Draw stops
