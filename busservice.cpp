@@ -58,42 +58,42 @@ struct cBusStopProperties {
     bool busyEvening;
 };
 struct cBusStopProperties busStopProps[numStops] = {
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
-    {10, false, false},
+    {10, false, false},//station
+    {10, false, false},//piazza
+    {10, false, false},//stadion
+    {10, false, false},//glaspoort
+    {10, false, false},//stijp-s
+    {10, false, false},//cederlaan
+    {10, false, false},//evoluon
+    {10, false, false},//bredalaan
+    {10, false, false},//hurksestraat
+    {10, false, false},//p+r meerhoven
+    {10, false, false},//landforum
+    {10, false, false},//grasrijk&polders
+    {10, false, false},//meerrijk&smelen
+    {10, false, false},//zandrijk&heemweg/centrum
+    {10, false, false},//cargo forum&city centrum
+    {10, false, false},//flight forum&bossebaan
+    {10, false, false},//de klokkenmaker&de naaldenmaker
+    {10, false, false},//remove
+    {10, false, false},//remove
+    {10, false, false},//airport&sondervick
+    {10, false, false},//kometenlaan&mira
+    {10, false, false},//flight forum&bossebaan
+    {10, false, false},//cargo forum&city centrum
+    {10, false, false},//zandrijk&heemweg/centrum
+    {10, false, false},//meerrijk&smelen
+    {10, false, false},//grasrijk&polders
+    {10, false, false},//landforum
+    {10, false, false},//p+r meerhoven
+    {10, false, false},//hurksestraat
+    {10, false, false},//bredalaan
+    {10, false, false},//evoluon
+    {10, false, false},//cederlaan
+    {10, false, false},//stijp-s
+    {10, false, false},//glaspoort
+    {10, false, false},//stadion
+    {10, false, false},//piazza
 };
 
 // Used as a reference
