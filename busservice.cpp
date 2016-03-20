@@ -58,42 +58,40 @@ struct cBusStopProperties {
     bool busyEvening;
 };
 struct cBusStopProperties busStopProps[numStops] = {
-    {10, false, false},//station
-    {10, false, false},//piazza
-    {10, false, false},//stadion
-    {10, false, false},//glaspoort
-    {10, false, false},//stijp-s
-    {10, false, false},//cederlaan
-    {10, false, false},//evoluon
-    {10, false, false},//bredalaan
-    {10, false, false},//hurksestraat
-    {10, false, false},//p+r meerhoven
-    {10, false, false},//landforum
-    {10, false, false},//grasrijk&polders
-    {10, false, false},//meerrijk&smelen
-    {10, false, false},//zandrijk&heemweg/centrum
-    {10, false, false},//cargo forum&city centrum
-    {10, false, false},//flight forum&bossebaan
-    {10, false, false},//de klokkenmaker&de naaldenmaker
-    {10, false, false},//remove
-    {10, false, false},//remove
-    {10, false, false},//airport&sondervick
-    {10, false, false},//kometenlaan&mira
-    {10, false, false},//flight forum&bossebaan
-    {10, false, false},//cargo forum&city centrum
-    {10, false, false},//zandrijk&heemweg/centrum
-    {10, false, false},//meerrijk&smelen
-    {10, false, false},//grasrijk&polders
-    {10, false, false},//landforum
-    {10, false, false},//p+r meerhoven
-    {10, false, false},//hurksestraat
-    {10, false, false},//bredalaan
-    {10, false, false},//evoluon
-    {10, false, false},//cederlaan
-    {10, false, false},//stijp-s
-    {10, false, false},//glaspoort
-    {10, false, false},//stadion
-    {10, false, false},//piazza
+    {60, true, true},   //station
+    {25, false, true},  //piazza
+    {5, false, false},  //stadion
+    {5, false, false},  //glaspoort
+    {15, true, true},   //strijp-s
+    {7, false, false},  //cederlaan
+    {3, false, false},  //evoluon
+    {5, false, false},  //bredalaan
+    {3, false, false},  //hurksestraat
+    {40, false, false}, //p+r meerhoven
+    {13, false, false}, //landforum
+    {20, true, false},  //grasrijk&polders
+    {8, false, false},  //meerrijk&smelen
+    {20, true, false},  //zandrijk&heemweg/centrum
+    {15, false, false}, //cargo forum&city centrum
+    {7, false, false},  //flight forum&bossebaan
+    {17, false, false}, //de klokkenmaker&de naaldenmaker
+    {45, true, true},   //airport&sondervick
+    {17, true, false},  //kometenlaan&mira
+    {7, false, false},  //flight forum&bossebaan
+    {15, true, false},  //cargo forum&city centrum
+    {20, true, false},  //zandrijk&heemweg/centrum
+    {8, false, false},  //meerrijk&smelen
+    {20, true, false},  //grasrijk&polders
+    {15, true, false},  //landforum
+    {40, true, false},  //p+r meerhoven
+    {3, false, false},  //hurksestraat
+    {5, false, false},  //bredalaan
+    {3, false, false},  //evoluon
+    {7, true, false},   //cederlaan
+    {15, true, true},   //strijp-s
+    {5, false, false},  //glaspoort
+    {5, false, false},  //stadion
+    {25, false, false}, //piazza
 };
 
 // Used as a reference
@@ -110,7 +108,7 @@ struct cClock {
     int timeOfDay = 1; // 1-86400
 } clk;
 
-#include "vis.cpp"
+//#include "vis.cpp"
 
 // Number of buses being driven
 int numBuses(void) {

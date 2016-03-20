@@ -18,7 +18,7 @@
 #define maxWaitingPassengers 15
 #define maxBuses 50
 #define avgStopDistance 631
-#define numStops 36
+#define numStops 34
 #define lineLength numStops * avgStopDistance
 #define maxTOD 86400
 
