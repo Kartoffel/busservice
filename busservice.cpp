@@ -23,7 +23,7 @@ struct cBusStation {
     float income = 0.0;
     float costs = 0.0;
     float profit = 0.0;
-    const float avgTicketPrice = 1.65;
+    const float avgTicketPrice = 0.9;
 } busStation;
 
 struct cBus {
@@ -59,7 +59,7 @@ struct cBusStopProperties {
     bool busyEvening;
 };
 struct cBusStopProperties busStopProps[numStops] = {
-    {60, true, true},   //station
+    {40, true, true},   //station
     {25, false, true},  //piazza
     {5, false, false},  //stadion
     {5, false, false},  //glaspoort
@@ -68,7 +68,7 @@ struct cBusStopProperties busStopProps[numStops] = {
     {3, false, false},  //evoluon
     {5, false, false},  //bredalaan
     {3, false, false},  //hurksestraat
-    {40, false, false}, //p+r meerhoven
+    {25, false, false}, //p+r meerhoven
     {13, false, false}, //landforum
     {20, true, false},  //grasrijk&polders
     {8, false, false},  //meerrijk&smelen
@@ -109,7 +109,7 @@ struct cClock {
     int timeOfDay = 1; // 1-86400
 } clk;
 
-#include "vis.cpp"
+//#include "vis.cpp"
 
 // Number of buses being driven
 int numBuses(void) {
@@ -458,7 +458,7 @@ void tick(void) {
     float timeOfDay24h = 24 * clk.timeOfDay / maxTOD;
     for (int i = 0; i < numStops; i++) {
         float passengerPeriod, c, a;
-        float f0 = 0.25;
+        float f0 = 0.125;
         if (busStops[i].busyMorning)
             c = 1.0;
         else
@@ -470,11 +470,15 @@ void tick(void) {
             a = 0.1;
 
         if (timeOfDay24h <= 12) {
-            passengerPeriod = 60.0 / (busStops[i].weight * f0 * c * 6 * exp(
-                -pow(timeOfDay24h - 9, 2) / 15.0) / 10 + 3);
+            passengerPeriod = 60.0 / (busStops[i].weight * f0 * c * (6 * exp(
+                -pow(timeOfDay24h - 9, 2) / 15.0) + 3) / 10);
         } else {
-            passengerPeriod = 60.0 / (busStops[i].weight * f0 * a * 6 * exp(
-                -pow(timeOfDay24h - 17, 2) / 15.0) / 10 + 3);
+            passengerPeriod = 60.0 / (busStops[i].weight * f0 * a * (6 * exp(
+                -pow(timeOfDay24h - 17, 2) / 15.0) + 3) / 10);
+        }
+
+        if (clk.timeOfDay == 22*3600) {
+            printf("10pm: Stop %d - passengerPeriod %.1f\n", i, passengerPeriod);
         }
 
         if (clk.timeOfDay % (int) round(passengerPeriod) == 0){
