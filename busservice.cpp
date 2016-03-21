@@ -48,15 +48,19 @@ struct cBusStop {
     float position = 0.0;
     struct cPassenger *waitingPassengers[maxWaitingPassengers];
     float weight = 10;
-    bool busyMorning = false;
-    bool busyEvening = false;
+    bool busyMorningIn = false;
+    bool busyMorningOut = false;
+    bool busyEveningIn = false;
+    bool busyEveningOut = false;
 };
 struct cBusStop busStops[numStops];
 
 struct cBusStopProperties {
     float weight;
-    bool busyMorning;
-    bool busyEvening;
+    bool busyMorningIn;
+    bool busyMorningOut;
+    bool busyEveningIn;
+    bool busyEveningOut;
 };
 struct cBusStopProperties busStopProps[numStops] = {
     {40, true, true},   //station
@@ -205,15 +209,15 @@ struct cBusStopRef nextStop(float curPos) {
 int exitingPassengers(int curStop){
     float timeOfDay24h = 24.0 * clk.timeOfDay / (maxTOD);
     float c,a,passengers;
-    if (busStops[curStop].busyMorning)
-        c = 0.3;
-    else
+    if (busStops[curStop].busyMorningOut)
         c = 1.0;
-
-    if (busStops[curStop].busyEvening)
-        a = 0.3;
     else
+        c = 0.3;
+
+    if (busStops[curStop].busyEveningOut)
         a = 1.0;
+    else
+        a = 0.3;
 
     if (timeOfDay24h <= 12) {
         passengers = ((busStops[curStop].weight * c * (14 *
@@ -445,8 +449,10 @@ void initializeModel(void) {
     for (int i = 0; i < numStops; i++) {
         busStops[i].position = i * avgStopDistance;
         busStops[i].weight = busStopProps[i].weight;
-        busStops[i].busyMorning = busStopProps[i].busyMorning;
-        busStops[i].busyEvening = busStopProps[i].busyEvening;
+        busStops[i].busyMorningIn = busStopProps[i].busyMorningIn;
+        busStops[i].busyMorningOut = busStopProps[i].busyMorningOut;
+        busStops[i].busyEveningIn = busStopProps[i].busyEveningIn;
+        busStops[i].busyEveningOut = busStopProps[i].busyEveningOut;
     }
 }
 
@@ -461,12 +467,12 @@ void tick(void) {
     for (int i = 0; i < numStops; i++) {
         float passengerPeriod, c, a;
         float f0 = 0.075; // Obtained through amazing calculations
-        if (busStops[i].busyMorning)
+        if (busStops[i].busyMorningIn)
             c = 1.0;
         else
             c = 0.3;
 
-        if (busStops[i].busyEvening)
+        if (busStops[i].busyEveningIn)
             a = 1.0;
         else
             a = 0.3;
