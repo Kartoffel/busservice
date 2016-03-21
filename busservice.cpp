@@ -63,40 +63,40 @@ struct cBusStopProperties {
     bool busyEveningOut;
 };
 struct cBusStopProperties busStopProps[numStops] = {
-    {40, true, true},   //station
-    {25, false, true},  //piazza
-    {5, false, false},  //stadion
-    {5, false, false},  //glaspoort
-    {15, true, true},   //strijp-s
-    {7, false, false},  //cederlaan
-    {3, false, false},  //evoluon
-    {5, false, false},  //bredalaan
-    {3, false, false},  //hurksestraat
-    {25, false, false}, //p+r meerhoven
-    {13, false, false}, //landforum
-    {20, true, false},  //grasrijk&polders
-    {8, false, false},  //meerrijk&smelen
-    {20, true, false},  //zandrijk&heemweg/centrum
-    {15, false, false}, //cargo forum&city centrum
-    {7, false, false},  //flight forum&bossebaan
-    {17, false, false}, //de klokkenmaker&de naaldenmaker
-    {45, true, true},   //airport&sondervick
-    {17, true, false},  //kometenlaan&mira
-    {7, false, false},  //flight forum&bossebaan
-    {15, true, false},  //cargo forum&city centrum
-    {20, true, false},  //zandrijk&heemweg/centrum
-    {8, false, false},  //meerrijk&smelen
-    {20, true, false},  //grasrijk&polders
-    {15, true, false},  //landforum
-    {40, true, false},  //p+r meerhoven
-    {3, false, false},  //hurksestraat
-    {5, false, false},  //bredalaan
-    {3, false, false},  //evoluon
-    {7, true, false},   //cederlaan
-    {15, true, true},   //strijp-s
-    {5, false, false},  //glaspoort
-    {5, false, false},  //stadion
-    {25, false, false}, //piazza
+    {40, true, true, true, true},   //station
+    {25, false, false, true, false},  //piazza
+    {5, false, false, false, false},  //stadion
+    {5, false, true, false, false},  //glaspoort
+    {15, true, true, true, true},   //strijp-s
+    {7, false, false, false, true},  //cederlaan
+    {3, false, false, false, false},  //evoluon
+    {5, false, false, false, false},  //bredalaan
+    {3, false, false, false, false},  //hurksestraat
+    {25, false, false, false, true}, //p+r meerhoven
+    {13, false, false, false, true}, //landforum
+    {20, true, false, false, true},  //grasrijk&polders
+    {8, false, false, false, false},  //meerrijk&smelen
+    {20, true, true, true, true},  //zandrijk&heemweg/centrum
+    {15, true, true, true, true}, //cargo forum&city centrum
+    {7, false, false, false, false},  //flight forum&bossebaan
+    {17, false, false, false, true}, //de klokkenmaker&de naaldenmaker
+    {45, true, true, true, true},   //airport&sondervick
+    {17, true, false, false, false},  //kometenlaan&mira
+    {7, false, false, false, false},  //flight forum&bossebaan
+    {15, true, true, true, true},  //cargo forum&city centrum
+    {20, true, true, true, true},  //zandrijk&heemweg/centrum
+    {8, false, false, false, false},  //meerrijk&smelen
+    {20, true, false, false, true},  //grasrijk&polders
+    {13, true, false, false, false},  //landforum
+    {25, true, false, false, false},  //p+r meerhoven
+    {3, false, false, false, false},  //hurksestraat
+    {5, false, false, false, false},  //bredalaan
+    {3, false, false, false, false},  //evoluon
+    {7, true, false, false, false},   //cederlaan
+    {15, true, true, true, true},   //strijp-s
+    {5, false, false, true, false},  //glaspoort
+    {5, false, false, false, false},  //stadion
+    {25, false, true, false, false}, //piazza
 };
 
 // Used as a reference
