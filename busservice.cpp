@@ -435,10 +435,10 @@ void updateTimeVariables(void) {
     }
 
     if (timeOfDay24h <= 12) {
-        driver.trafficDelay = (-4 * exp(-pow(timeOfDay24h - 9.0, 2) / 15) + 10)
+        driver.trafficDelay = ((-6*exp(pow(timeOfDay24h-7.0,1.0)))/(1+exp(pow(timeOfDay24h-7.0,1.1)))+10)
             / 10;
     }else{
-        driver.trafficDelay = (-6 * exp(-pow(timeOfDay24h - 17.0, 2) / 15) + 10)
+        driver.trafficDelay = ((-10*exp(pow(-timeOfDay24h+19.0,1.0)))/(1+exp(pow(-timeOfDay24h+19.0,1.2)))+10)
             / 10;
     }
 }
