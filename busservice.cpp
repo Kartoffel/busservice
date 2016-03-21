@@ -109,7 +109,7 @@ struct cClock {
     int timeOfDay = 1; // 1-86400
 } clk;
 
-//#include "vis.cpp"
+#include "vis.cpp"
 
 // Number of buses being driven
 int numBuses(void) {
@@ -206,21 +206,23 @@ int exitingPassengers(int curStop){
     float timeOfDay24h = 24.0 * clk.timeOfDay / (maxTOD);
     float c,a,passengers;
     if (busStops[curStop].busyMorning)
-        c = 0.1;
+        c = 0.3;
     else
         c = 1.0;
 
     if (busStops[curStop].busyEvening)
-        a = 0.1;
+        a = 0.3;
     else
         a = 1.0;
 
     if (timeOfDay24h <= 12) {
-        passengers = (busStops[curStop].weight * c * 6 * exp(
-            -pow(timeOfDay24h - 9, 2) / 15) + 3) / 10;
+        passengers = ((busStops[curStop].weight * c * (14 *
+            exp (1 * (timeOfDay24h - 7.0)) / (1 + exp(1.2 *
+            (timeOfDay24h - 7.0))) + 1)) / 10);
     } else {
-        passengers = (busStops[curStop].weight * a * 6 * exp(
-            -pow(timeOfDay24h - 17, 2) / 15) + 3) / 10;
+        passengers = ((busStops[curStop].weight * a * (14 *
+            exp (1 * (-timeOfDay24h + 18.0)) / (1 + exp(1.2 *
+            (-timeOfDay24h + 18.0))) + 1)) / 10);
     }
 
     return (int) round(passengers);
@@ -458,23 +460,25 @@ void tick(void) {
     float timeOfDay24h = 24 * clk.timeOfDay / maxTOD;
     for (int i = 0; i < numStops; i++) {
         float passengerPeriod, c, a;
-        float f0 = 0.125;
+        float f0 = 0.075; // Obtained through amazing calculations
         if (busStops[i].busyMorning)
             c = 1.0;
         else
-            c = 0.1;
+            c = 0.3;
 
         if (busStops[i].busyEvening)
             a = 1.0;
         else
-            a = 0.1;
+            a = 0.3;
 
         if (timeOfDay24h <= 12) {
-            passengerPeriod = 60.0 / (busStops[i].weight * f0 * c * (6 * exp(
-                -pow(timeOfDay24h - 9, 2) / 15.0) + 3) / 10);
+            passengerPeriod = 60.0 / ((busStops[i].weight * f0 * c * (14 *
+                exp (1 * (timeOfDay24h - 7)) / (1 + exp(1.2 *
+                (timeOfDay24h - 7.0))) + 1)) / 10);
         } else {
-            passengerPeriod = 60.0 / (busStops[i].weight * f0 * a * (6 * exp(
-                -pow(timeOfDay24h - 17, 2) / 15.0) + 3) / 10);
+            passengerPeriod = 60.0 / ((busStops[i].weight * f0 * a * (14 *
+                exp (1 * (-timeOfDay24h + 18)) / (1 + exp(1.2 *
+                (-timeOfDay24h + 18))) + 1)) / 10);
         }
 
         if (clk.timeOfDay == 22*3600) {
@@ -571,7 +575,8 @@ int main(void) {
             break;
         }
 
-        if (clk.timeOfDay > busStation.periodEmitBus){
+        //if (clk.timeOfDay > busStation.periodEmitBus){
+        if (clk.timeOfDay > 8*3600){
             drawScreen();
             SDL_Delay(6);
         }
