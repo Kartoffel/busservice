@@ -15,6 +15,7 @@ unsigned int    totalAvailNum       = 0; // Used for averaging
 unsigned int    totalBuses          = 0;
 
 int             lastLine            = 1;
+bool            csvOutput           = false;
 
 struct cBusStation {
     int periodEmitBus = 0;
@@ -435,19 +436,28 @@ void updateTimeVariables(void) {
     }
 
     if (timeOfDay24h <= 12) {
-        driver.trafficDelay = ((-6*exp(pow(timeOfDay24h-7.0,1.0)))/(1+exp(pow(timeOfDay24h-7.0,1.1)))+10)
-            / 10;
+        driver.trafficDelay = ((-6 * exp(pow(timeOfDay24h - 7.0, 1.0))) /
+                (1 + exp(1.1 * pow(timeOfDay24h - 7.0, 1.0))) +10) / 10;
     }else{
-        driver.trafficDelay = ((-10*exp(pow(-timeOfDay24h+19.0,1.0)))/(1+exp(pow(-timeOfDay24h+19.0,1.2)))+10)
-            / 10;
+        driver.trafficDelay = ((-10 * exp(pow(-timeOfDay24h + 19.0, 1.0))) /
+                (1 + exp(1.2 * pow(-timeOfDay24h + 19.0, 1.0))) + 10) / 10;
     }
 }
 
-void initializeModel(void) {
+void initializeModel(int argc, char* argv[]) {
+    if (argc > 1 && argc != 4) {
+        printf("** USAGE: ./busservice RUSH DAY NIGHT\n");
+    } else if (argc == 4) {
+        csvOutput = true;
+        for (int i = 0; i < 3; i++) {
+            busStation.periodsEmitBus[i] = atoi(argv[i + 1]);
+        }
+    }
+
     // Use average velocity (obtained from trafficDelay equations) to calculate
     // the approximate cost of sending out a bus
     busStation.busDepartureCost = 20.52 + 16.15 * (22.8 / (driver.maxVelocity *
-        0.737 * 3.6));
+        0.732 * 3.6));
 
     for (int i = 0; i < numStops; i++) {
         busStops[i].position = i * avgStopDistance;
@@ -543,36 +553,46 @@ void cleanupModel(void) {
 }
 
 void printResults(void) {
-    printf("Total departed buses: %d\n", totalBuses);
-    printf("Total passengers: %d\n", totalInPassengers);
-    printf("Total paid passengers: %d\n",totalOutPassengers);
-    printf("%d passengers forced out during the day\n", totalForcedOutPass);
-    printf("%d passengers forced out at midnight\n", forcedOutPass);
     int remainingPassengers = 0;
     for (int i = 0; i < numStops; i++) {
         remainingPassengers += numWaitingPassengers(i);
     }
-    printf("Passengers remaining at stops: %d\n", remainingPassengers);
 
     float avgWaitTime = waitTime / totalOutPassengers;
-    printf("\nAverage passenger waiting time (s): %.1f\n", avgWaitTime);
-
     float avgSeatAvailability = totalAvailability / (float) totalAvailNum;
-    printf("Average seat availability: %.1f%%\n", avgSeatAvailability);
-
-    printf("Number of overtakes: %d\n", numOvertakes);
-
-    printf("Costs: %.2f, income: %.2f\n", busStation.costs, busStation.income);
     busStation.profit = 0.5 * busStation.income - busStation.costs;
-    printf("Profit (including 50%% tax on income): %.1f (%.1f%%)\n",
-            busStation.profit, 100 * busStation.profit / busStation.costs);
+    float percentProfit = 100 * busStation.profit / busStation.costs;
+
+    if (!csvOutput) {
+
+        printf("Total departed buses: %d\n", totalBuses);
+        printf("Total passengers: %d\n", totalInPassengers);
+        printf("Total paid passengers: %d\n",totalOutPassengers);
+        printf("%d passengers forced out during the day\n", totalForcedOutPass);
+        printf("%d passengers forced out at midnight\n", forcedOutPass);
+        printf("Passengers remaining at stops: %d\n", remainingPassengers);
+
+        printf("\nAverage passenger waiting time (s): %.1f\n", avgWaitTime);
+
+        printf("Average seat availability: %.1f%%\n", avgSeatAvailability);
+
+        printf("Number of overtakes: %d\n", numOvertakes);
+
+        printf("Costs: %.2f, income: %.2f\n", busStation.costs,
+                busStation.income);
+        printf("Profit (including 50%% tax on income): %.1f (%.1f%%)\n",
+                busStation.profit, percentProfit);
+    } else {
+        printf("%.1f,%.1f,%d,%.1f\n",
+                avgWaitTime, avgSeatAvailability, numOvertakes, percentProfit);
+    }
 }
 
-int main(void) {
+int main(int argc, char* argv[]) {
 #ifdef VIS_CPP_
     initializeScreen();
 #endif
-    initializeModel();
+    initializeModel(argc, argv);
 
     while (clk.timeOfDay <= maxTOD) {
         tick();
@@ -582,8 +602,8 @@ int main(void) {
             break;
         }
 
-        //if (clk.timeOfDay > busStation.periodEmitBus){
-        if (clk.timeOfDay > 8*3600){
+        if (clk.timeOfDay > busStation.periodEmitBus){
+        //if (clk.timeOfDay > 5 * 3600){
             drawScreen();
             SDL_Delay(6);
         }

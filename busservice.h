@@ -52,9 +52,9 @@ void updateWaitingPassengers(void);
 bool spawnPassenger(int busStop);
 void spawnPassengers(void);
 void updateTimeVariables(void);
-void initializeModel(void);
+void initializeModel(int argc, char* argv[]);
 void tick(void);
 void cleanupModel(void);
 void printResults(void);
-int main(void);
+int main(int argc, char* argv[]);
 #endif
