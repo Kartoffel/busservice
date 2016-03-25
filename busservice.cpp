@@ -220,7 +220,7 @@ int exitingPassengers(int curStop){
     else
         a = 0.3;
 
-    if (timeOfDay24h <= 12) {
+    if (timeOfDay24h <= 13) {
         passengers = ((busStops[curStop].weight * c * (14 *
             exp (1 * (timeOfDay24h - 7.0)) / (1 + exp(1.2 *
             (timeOfDay24h - 7.0))) + 1)) / 10);
@@ -435,7 +435,7 @@ void updateTimeVariables(void) {
         busStation.periodEmitBus = busStation.periodsEmitBus[1];
     }
 
-    if (timeOfDay24h <= 12) {
+    if (timeOfDay24h <= 13) {
         driver.trafficDelay = ((-6 * exp(pow(timeOfDay24h - 7.0, 1.0))) /
                 (1 + exp(1.1 * pow(timeOfDay24h - 7.0, 1.0))) +10) / 10;
     }else{
@@ -490,7 +490,7 @@ void tick(void) {
         else
             a = 0.3;
 
-        if (timeOfDay24h <= 12) {
+        if (timeOfDay24h <= 13) {
             passengerPeriod = 60.0 / ((busStops[i].weight * f0 * c * (14 *
                 exp (1 * (timeOfDay24h - 7)) / (1 + exp(1.2 *
                 (timeOfDay24h - 7.0))) + 1)) / 10);
