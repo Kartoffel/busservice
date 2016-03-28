@@ -324,10 +324,13 @@ void updateBuses(void) {
             if (buses[i]->passengersOnBoard > 0) {
                 seatAvailability = 100 * sittingPassengers
                     / buses[i]->passengersOnBoard;
-            }
 
-            totalAvailability += seatAvailability;
-            totalAvailNum += 1;
+                totalAvailability += seatAvailability;
+                totalAvailNum += 1;
+            } else {
+                totalAvailability += 100;
+                totalAvailNum += 1;
+            }
         }
     }
 }
