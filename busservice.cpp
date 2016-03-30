@@ -63,41 +63,43 @@ struct cBusStopProperties {
     bool busyEveningIn;
     bool busyEveningOut;
 };
+// Properties of each bus stop
+// weight, busy morning/evening in/out
 struct cBusStopProperties busStopProps[numStops] = {
-    {40, true, true, true, true},   //station
-    {25, false, false, true, false},  //piazza
-    {5, false, false, false, false},  //stadion
-    {5, false, true, false, false},  //glaspoort
-    {15, true, true, true, true},   //strijp-s
-    {7, false, false, false, true},  //cederlaan
-    {3, false, false, false, false},  //evoluon
-    {5, false, false, false, false},  //bredalaan
-    {3, false, false, false, false},  //hurksestraat
-    {25, false, false, false, true}, //p+r meerhoven
-    {13, false, false, false, true}, //landforum
-    {20, true, false, false, true},  //grasrijk&polders
-    {8, false, false, false, false},  //meerrijk&smelen
-    {20, true, true, true, true},  //zandrijk&heemweg/centrum
-    {15, true, true, true, true}, //cargo forum&city centrum
-    {7, false, false, false, false},  //flight forum&bossebaan
-    {17, false, false, false, true}, //de klokkenmaker&de naaldenmaker
-    {45, true, true, true, true},   //airport&sondervick
-    {17, true, false, false, false},  //kometenlaan&mira
-    {7, false, false, false, false},  //flight forum&bossebaan
-    {15, true, true, true, true},  //cargo forum&city centrum
-    {20, true, true, true, true},  //zandrijk&heemweg/centrum
-    {8, false, false, false, false},  //meerrijk&smelen
-    {20, true, false, false, true},  //grasrijk&polders
-    {13, true, false, false, false},  //landforum
-    {25, true, false, false, false},  //p+r meerhoven
-    {3, false, false, false, false},  //hurksestraat
-    {5, false, false, false, false},  //bredalaan
-    {3, false, false, false, false},  //evoluon
-    {7, true, false, false, false},   //cederlaan
-    {15, true, true, true, true},   //strijp-s
-    {5, false, false, true, false},  //glaspoort
-    {5, false, false, false, false},  //stadion
-    {25, false, true, false, false}, //piazza
+    {40, true, true, true, true},       //station
+    {25, false, false, true, false},    //piazza
+    {5, false, false, false, false},    //stadion
+    {5, false, true, false, false},     //glaspoort
+    {15, true, true, true, true},       //strijp-s
+    {7, false, false, false, true},     //cederlaan
+    {3, false, false, false, false},    //evoluon
+    {5, false, false, false, false},    //bredalaan
+    {3, false, false, false, false},    //hurksestraat
+    {25, false, false, false, true},    //p+r meerhoven
+    {13, false, false, false, true},    //landforum
+    {20, true, false, false, true},     //grasrijk&polders
+    {8, false, false, false, false},    //meerrijk&smelen
+    {20, true, true, true, true},       //zandrijk&heemweg/centrum
+    {15, true, true, true, true},       //cargo forum&city centrum
+    {7, false, false, false, false},    //flight forum&bossebaan
+    {17, false, false, false, true},    //de klokkenmaker&de naaldenmaker
+    {45, true, true, true, true},       //airport&sondervick
+    {17, true, false, false, false},    //kometenlaan&mira
+    {7, false, false, false, false},    //flight forum&bossebaan
+    {15, true, true, true, true},       //cargo forum&city centrum
+    {20, true, true, true, true},       //zandrijk&heemweg/centrum
+    {8, false, false, false, false},    //meerrijk&smelen
+    {20, true, false, false, true},     //grasrijk&polders
+    {13, true, false, false, false},    //landforum
+    {25, true, false, false, false},    //p+r meerhoven
+    {3, false, false, false, false},    //hurksestraat
+    {5, false, false, false, false},    //bredalaan
+    {3, false, false, false, false},    //evoluon
+    {7, true, false, false, false},     //cederlaan
+    {15, true, true, true, true},       //strijp-s
+    {5, false, false, true, false},     //glaspoort
+    {5, false, false, false, false},    //stadion
+    {25, false, true, false, false},    //piazza
 };
 
 // Used as a reference
@@ -570,11 +572,12 @@ void printResults(void) {
 
         printf("Total departed buses: %d\n", totalBuses);
         printf("Total passengers: %d\n", totalInPassengers);
+#ifdef DEBUG
         printf("Total paid passengers: %d\n",totalOutPassengers);
         printf("%d passengers forced out during the day\n", totalForcedOutPass);
         printf("%d passengers forced out at midnight\n", forcedOutPass);
         printf("Passengers remaining at stops: %d\n", remainingPassengers);
-
+#endif
         printf("\nAverage passenger waiting time (s): %.1f\n", avgWaitTime);
 
         printf("Average seat availability: %.1f%%\n", avgSeatAvailability);
@@ -605,8 +608,8 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        if (clk.timeOfDay > busStation.periodEmitBus){
-        //if (clk.timeOfDay > 5 * 3600){
+        //if (clk.timeOfDay > busStation.periodEmitBus){
+        if (clk.timeOfDay > 6 * 3600){
             drawScreen();
             SDL_Delay(6);
         }
